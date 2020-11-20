@@ -97,3 +97,55 @@ Uses an odd number of servers (3,5,7), to form a quorun.
 Has a leader (handles writes) and followers (handles reads)
 
 Does not store consumer offsets anymore (since 0.1.0)
+
+
+# 5) Starting Kafka
+
+## Install
+Follow https://kafka.apache.org/quickstart:
+
+Download and unpack https://kafka.apache.org/downloads to dir
+
+Configure the Kafka server properties in dir/config/server.properties (eg, the broker.id)
+
+## Start
+Start Zookeeper: `bin/zookeeper-server-start.sh config/zookeeper.properties`
+Start the Kafka broker: `bin/kafka-server-start.sh config/server.properties`
+
+# 6) CLI
+## Configure a topic
+Create a simple topic: `kafka-topics --zookeeper localhost:2181 --create --topic quickstart-events --partitions 3 --replication-factor 1`
+
+View this topic: `kafka-topics --zookeeper localhost:2181 --topic quickstart-events --describe`
+
+Delete a topic: `kafka-topics --zookeeper localhost:2181 --delete --topic quickstart-events`
+
+## Producer
+`kafka-console-producer --broker-list localhost:9092 --topic quickstart-events`
+
+
+## Consumer
+Read from the latest message (default):
+`kafka-console-consumer --bootstrap-server localhost:9092 --topic quickstart-events`
+
+Read from the latest message (default) with consumer group name
+`kafka-console-consumer --bootstrap-server localhost:9092 --topic quickstart-events --group mygroup`
+
+Read from beginning:
+`kafka-console-consumer --bootstrap-server localhost:9092 --topic quickstart-events --from-beginning`
+
+Read from offset:
+`kafka-console-consumer --bootstrap-server localhost:9092 --topic quickstart-events --offset XYZ`
+
+## Consumer groups
+List groups
+
+`kafka-consumer-groups --bootstrap-server localhost:9092 --list`
+
+Describe group
+
+`kafka-consumer-groups --bootstrap-server localhost:9092 --describe --group console-consumer-76579`
+
+Reset offsets
+
+`kafka-consumer-groups --bootstrap-server localhost:9092 --reset-offsets --to-earliest --execute`
