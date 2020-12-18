@@ -1,10 +1,13 @@
 Kafka series v2
 
 # Overview
+
 Kafka is a publish/subscribe mechanism, distributed, with fault tolerance.
 
 # 4) Kafka Theory
+
 ## 2 Topic, partition, offsets
+
 A topic has a name (akin to a table in a DB, without all the constraints)
 
 A topic can be split in N partitions
@@ -15,8 +18,8 @@ Order is guaranteed per partition.
 
 Data retention default is 1 week.
 
-
 ## 3 Brokers and topics
+
 A kafka cluster has N brokers (nodes)
 
 A broker is identified by an ID (integer).
@@ -24,6 +27,7 @@ A broker is identified by an ID (integer).
 Each partition of a topic is hosted on a dedicated broker (if possible)
 
 Ex with 3 brokers, topic A (3 partitions), topic B (2 partitions):
+
 ```
 broker1: topicA.partition3, topicB.partition1
 broker2: topicA.partition1
@@ -31,6 +35,7 @@ broker3: topicA.partition2, topicB.partition2
 ```
 
 ## 4 Topic replication
+
 Topic have a replication factor. It shoud be >1; ideal is 3.
 
 Each partition of a topic is replicated on N (=replication factor) brokers.
@@ -44,14 +49,15 @@ When a producer sends a message to 1 topic without any partition key: message wi
 A producer knows which broker to connect to (to send messages) and can recover from broker failures.
 
 Acknowledgments:
-* Acks=0: producer doesn't wait or ack -> possible data loss
-* Acks=1: producer waits for the leader ack -> limited data loss
-* Acks=all: producer waits for leader + replicas acks -> no data loss
+
+- Acks=0: producer doesn't wait or ack -> possible data loss
+- Acks=1: producer waits for the leader ack -> limited data loss
+- Acks=all: producer waits for leader + replicas acks -> no data loss
 
 Message keys:
-* =null: round robin
-* set: set to broken hashkey%nbBrokers => same key sent to always the same partition. It can be used to enforce message ordering (ex: on an ID)
 
+- =null: round robin
+- set: set to broken hashkey%nbBrokers => same key sent to always the same partition. It can be used to enforce message ordering (ex: on an ID)
 
 ## 6 Consumers
 
@@ -62,6 +68,7 @@ Consumers reads data from a topic
 Data is read in order from each partition.
 
 ### Consumer groups
+
 Consumers read data as part of a consumer group.
 
 Each consumer within the group reads data from exclusive partitions
@@ -73,16 +80,16 @@ If more consumers than partitions: some consumers will be inactive.
 Consumer groups store their read offset in a kafka topic `__consumer_offsets`
 
 Delivery semantics
-* At most once (0/1): offset committed as soon as message is received -> possible data loss (if failure happens during processing)
-* At least once (1..N): offset committed after processing -> preferred, but the action should be idempotent to prevent duplicates
-* Exactly once: via Kafka streams (use an idempotent consumer)
+
+- At most once (0/1): offset committed as soon as message is received -> possible data loss (if failure happens during processing)
+- At least once (1..N): offset committed after processing -> preferred, but the action should be idempotent to prevent duplicates
+- Exactly once: via Kafka streams (use an idempotent consumer)
 
 ## 8 Kafka broker discovery
 
 Each broker you connect to knows about other brokers, topics and partition (metadata)
 
 This meta data is used by the client to connect to the right broker
-
 
 ## 9 Zookeeper
 
@@ -92,16 +99,16 @@ Manages partition leader election.
 
 Sends notification to kafka in case of change (new topic, broker up/down, etc)
 
-Uses an odd number of servers (3,5,7), to form a quorun.
+Uses an odd number of servers (3,5,7), to form a quorum.
 
 Has a leader (handles writes) and followers (handles reads)
 
 Does not store consumer offsets anymore (since 0.1.0)
 
-
 # 5) Starting Kafka
 
 ## Install
+
 Follow https://kafka.apache.org/quickstart:
 
 Download and unpack https://kafka.apache.org/downloads to dir
@@ -109,11 +116,14 @@ Download and unpack https://kafka.apache.org/downloads to dir
 Configure the Kafka server properties in dir/config/server.properties (eg, the broker.id)
 
 ## Start
+
 Start Zookeeper: `bin/zookeeper-server-start.sh config/zookeeper.properties`
 Start the Kafka broker: `bin/kafka-server-start.sh config/server.properties`
 
 # 6) CLI
+
 ## Configure a topic
+
 Create a simple topic: `kafka-topics --zookeeper localhost:2181 --create --topic quickstart-events --partitions 3 --replication-factor 1`
 
 View this topic: `kafka-topics --zookeeper localhost:2181 --topic quickstart-events --describe`
@@ -121,10 +131,11 @@ View this topic: `kafka-topics --zookeeper localhost:2181 --topic quickstart-eve
 Delete a topic: `kafka-topics --zookeeper localhost:2181 --delete --topic quickstart-events`
 
 ## Producer
+
 `kafka-console-producer --broker-list localhost:9092 --topic quickstart-events`
 
-
 ## Consumer
+
 Read from the latest message (default):
 `kafka-console-consumer --bootstrap-server localhost:9092 --topic quickstart-events`
 
@@ -138,6 +149,7 @@ Read from offset:
 `kafka-console-consumer --bootstrap-server localhost:9092 --topic quickstart-events --offset XYZ`
 
 ## Consumer groups
+
 List groups
 
 `kafka-consumer-groups --bootstrap-server localhost:9092 --list`
