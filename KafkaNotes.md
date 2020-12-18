@@ -198,3 +198,81 @@ Comes with these settings:
 - `retries=MAX_INT`
 - `max.in.flight.requests.per.connection=5` for kafka >= 1.0
 - `acks=all`
+
+## Compression
+
+By default: none
+
+Options: gzip, lz4, snappy
+
+Compression is done at batch-level
+
+Realated tweaks: `linger.ms`, `batch.size`
+
+## `linger.ms`, `batch.size`
+
+- `linger.ms`: time a message can 'linge' before being sent (0 to send right away), >0 to give a batching opportunity
+
+Lower value lowers latency at the expense of throughput (including less opportunity for compression)
+
+The farther away the broker is from the producer, the more overhead required to send messages. Increase linger.ms for higher latency and higher throughput in your producer.
+
+- `batch.size`: how many bytes of data to collect before sending messages to the Kafka broker.
+
+Batch are allocated per partition, so mind for resources consumption.
+
+If message size > batch.size: message is simply not batched
+
+## `max.block.ms` and `buffer.memory`
+
+If the broker cannot keep up with the producer, buffering happens on the producer side.
+
+The buffer has size `buffer.memory`: bytes (default 32Mb)
+
+When the buffer is filled, the call to `send()` will block until `max.block.ms` passes, then throw an exception.
+
+# 10 Advanced configurations
+
+## Offset commit strategy
+
+Auto-commit happens every 5s by default.
+
+Use commitSync() to commit manually
+
+## Consumer offset reset behavior
+
+Kafka log retention is 7 days (`log.retention.hours`=168)
+
+Kafka offsets retention is 1 day (`offsets.retention.minutes`=1440)
+
+For a consumer that lost its offset: `auto.offest.reset`: latest/earliest/none is what will be used to resume reading from.
+
+## Consumer liveliness
+
+Each consumer of a consumer group:
+
+- polls a broker for data
+- sends heartbeats to a consumer coordinator node
+
+If the consumer stop heartbeating, rebalance will happen.
+
+`session.timeout.ms`: if no heartbeat is sent during that period, consumer is considered offline (default 10s)
+
+`heartbeat.interval.ms`: consumer's heartbeat interval (default: 3s). Should be a third of the above.
+
+`max.poll.interval.ms`: max interval between 2 consumer poll() calls before consumer is considered offline (defaut: 5min, can be changed if workload is huge, eg Spark)
+
+=> Consumer should process data fast and often
+
+## Rebalancing
+
+(not from the course)
+
+Within a consumer group, partitions are assigned to members (consumers).
+
+Rebalance is: whenever a consumer dies, Kafka needs to re-assign its partitions to other consumer(s). This is done by consumers of the consumer group (by their elected leader consumer)
+
+Assignment strategy can be configured on the consumers themselves: `partition.assignment.strategy` (default: RangeAssignor which assign partition by their increasing ID to consumer by their lexicographic order)
+
+See https://chrzaszcz.dev/2019/06/kafka-rebalancing/
+
