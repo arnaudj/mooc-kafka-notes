@@ -161,3 +161,40 @@ Describe group
 Reset offsets
 
 `kafka-consumer-groups --bootstrap-server localhost:9092 --reset-offsets --to-earliest --execute`
+
+# 7 Kafka Java Programming 101
+
+# 8 Kafka Real World Project
+
+# 9 Kafka Twitter Producer & Advanced Configurations
+
+## Acks and `min.insync.replicas`
+
+When a producer sets `acks=all` then `min.insync.replicas` specifies the minimum number of replicas that must acknowledge a write for the write to be considered successful. If this minimum cannot be met, then the producer will raise an exception (either `NotEnoughReplicas` or `NotEnoughReplicasAfterAppend)`.
+
+## Producer retries
+
+Transient failures are to be handled by the caller by catching exceptions (eg, `NotEnoughReplicasException`)
+
+Retry attempts number can be controlled by the `retries` settings, whose defaults are:
+
+- `retries=0` for kafka <= 2.0
+- `retries=MAX_INT` for kafka >= 2.1
+
+Retry delay: `retry.backoff.ms`
+
+Max: `delivery.timeout.ms`: An upper bound on the time to report success or failure after a call to send() returns. This limits the total time that a record will be delayed prior to sending, the time to await acknowledgement from the broker (if expected), and the time allowed for retriable send failures.
+
+Retries can lead to out of order delivery (ex: loss of guarantee of per-partition ordering)
+
+Fix: use idempotent producers, see below.
+
+## Idempotent producer
+
+Provided by kafka. Saves request IDs to do deduplication.
+To set it, set property: `enable.idempotence` to `true`
+Comes with these settings:
+
+- `retries=MAX_INT`
+- `max.in.flight.requests.per.connection=5` for kafka >= 1.0
+- `acks=all`
